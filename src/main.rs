@@ -1,34 +1,38 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-type SingleLink = Option<Rc<RefCell<Node>>>;
+type Link = Option<Rc<RefCell<Node>>>;
 
+#[derive(Debug)]
 struct Node {
     value: String,
-    next: SingleLink
+    next: Link,
+    back: Link,
 }
 
 impl Node {
     fn new(value: String) -> Rc<RefCell<Node>> {
         Rc::new(RefCell::new(Node {
             value: value,
-            next: None
+            next: None,
+            back: None,
         }))
     }
 }
 
-struct TransactionLog {
-    head: SingleLink,
-    tail: SingleLink,
-    pub length: u64
+#[derive(Debug, Clone)]
+struct BetterTransactionLog {
+    head: Link,
+    tail: Link,
+    pub length: u64,
 }
 
-impl TransactionLog {
-    pub fn new_empty() -> TransactionLog {
-        TransactionLog {
+impl BetterTransactionLog {
+    pub fn new_empty() -> BetterTransactionLog {
+        BetterTransactionLog {
             head: None,
             tail: None,
-            length: 0
+            length: 0,
         }
     }
 
@@ -36,7 +40,7 @@ impl TransactionLog {
         let new = Node::new(value);
         match self.tail.take() {
             Some(old) => old.borrow_mut().next = Some(new.clone()),
-            None => self.head = Some(new.clone())
+            None => self.head = Some(new.clone()),
         };
         self.length += 1;
         self.tail = Some(new);
@@ -50,7 +54,7 @@ impl TransactionLog {
                 self.tail.take();
             }
 
-            self.length -=1;
+            self.length -= 1;
             Rc::try_unwrap(head)
                 .ok()
                 .expect("Something is terribly wrong")
@@ -61,7 +65,7 @@ impl TransactionLog {
 }
 
 fn main() {
-    let mut log = TransactionLog::new_empty();
+    let mut log = BetterTransactionLog::new_empty();
     log.append(String::from("qwerty"));
     log.pop();
     println!("{}", log.length);
