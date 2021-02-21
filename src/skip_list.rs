@@ -176,6 +176,4 @@ fn main() {
         let mut level_iter = tr.iter_level(level);
         println!("{:?}", level_iter.next());
     }
-    
-    
 }
