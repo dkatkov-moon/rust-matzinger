@@ -42,6 +42,24 @@ impl TimestampSaver {
         self.length += 1;
     }
 
+    pub fn prepend(&mut self, value: u64) {
+        if self.length == self.cap {
+            self.grow(self.length + 1);
+        }
+
+        let mut new_buf: Vec<Node> = vec![None; self.cap];
+        new_buf[0] = Some(value);
+
+        let mut idx = 1;
+        for v in self.buf[..self.length].iter() {
+            new_buf[idx] = *v;
+            idx += 1;
+        }
+        let old_len = self.buf.len();
+        self.buf[..old_len].clone_from_slice(&new_buf);
+        self.length += 1;
+    }
+
     pub fn at(&self, index: usize) -> Node {
         if self.length > index {
             self.buf[index]
@@ -90,10 +108,11 @@ impl IntoIterator for TimestampSaver {
 
 fn main() {
     let mut timestamp = TimestampSaver::new_empty();
-    timestamp.append(1);
-    timestamp.append(1);
+    timestamp.prepend(0);
     timestamp.append(1);
     timestamp.append(2);
+    timestamp.append(3);
+    timestamp.prepend(10);
     println!("{:?}", timestamp);
 
     let mut ts_iter = timestamp.into_iter();
